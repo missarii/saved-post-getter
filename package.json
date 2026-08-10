@@ -1,0 +1,38 @@
+{
+  "name": "linkedin-saved-post-getter",
+  "version": "1.0.0",
+  "description": "Browser automation agent for LinkedIn saved posts",
+  "main": "saved-post-getter.js",
+  "scripts": {
+    "start": "node saved-post-getter.js"
+  },
+  "dependencies": {
+    "playwright": "^1.50.0"
+  }
+}
+
+// Commit 22: Add fallback href extraction from dropdown
+
+// Commit 23: Add link deduplication with Set
+
+// Commit 24: Add link normalization to absolute URLs
+
+// Commit 25: Add output file writing with timestamp
+
+// Commit 26: Add existing links loading for incremental runs
+
+// Commit 27: Implement main() async function
+
+// Commit 28: Add process exit on fatal errors
+
+// Commit 29: Add finally block to close browser
+
+// Commit 30: Add headless mode configuration option
+
+// Commit 177: Final cleanup and production readiness
+
+// Commit 185: Final cleanup and production readiness
+
+// Commit 193: Final cleanup and production readiness
+
+// Commit 201: Final cleanup and production readiness
