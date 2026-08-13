@@ -14,3 +14,5 @@ yarn-error.log*
 // Commit 6: Create saved-post-getter.js skeleton with imports
 
 // Commit 7: Add Firefox profile detection from profiles.ini
+
+// Commit 8: Implement parseProfilesIni helper function
