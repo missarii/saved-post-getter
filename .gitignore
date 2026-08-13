@@ -12,3 +12,5 @@ yarn-error.log*
 // Commit 5: Add npm scripts for start and browser install
 
 // Commit 6: Create saved-post-getter.js skeleton with imports
+
+// Commit 7: Add Firefox profile detection from profiles.ini
