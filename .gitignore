@@ -16,3 +16,5 @@ yarn-error.log*
 // Commit 7: Add Firefox profile detection from profiles.ini
 
 // Commit 8: Implement parseProfilesIni helper function
+
+// Commit 9: Add LinkedIn saved posts URL constant
