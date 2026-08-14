@@ -20,3 +20,5 @@ yarn-error.log*
 // Commit 9: Add LinkedIn saved posts URL constant
 
 // Commit 10: Implement basic Firefox launch with user profile
+
+// Commit 11: Add page navigation to saved posts page
