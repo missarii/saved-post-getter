@@ -24,3 +24,5 @@ yarn-error.log*
 // Commit 11: Add page navigation to saved posts page
 
 // Commit 12: Add login wall detection and manual login prompt
+
+// Commit 13: Add basic error handling for navigation failures
