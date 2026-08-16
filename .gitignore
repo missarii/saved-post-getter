@@ -26,3 +26,5 @@ yarn-error.log*
 // Commit 12: Add login wall detection and manual login prompt
 
 // Commit 13: Add basic error handling for navigation failures
+
+// Commit 14: Implement scroll-to-load-all-posts function
