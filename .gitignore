@@ -30,3 +30,5 @@ yarn-error.log*
 // Commit 14: Implement scroll-to-load-all-posts function
 
 // Commit 15: Add overflow button selector for more actions
+
+// Commit 16: Add click handler for overflow buttons
