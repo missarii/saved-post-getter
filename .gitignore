@@ -36,3 +36,5 @@ yarn-error.log*
 // Commit 17: Add post-container detection after scroll
 
 // Commit 18: Add scroll stabilization with no-change counter
+
+// Commit 19: Add viewport resize for consistent rendering
