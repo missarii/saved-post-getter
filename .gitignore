@@ -34,3 +34,5 @@ yarn-error.log*
 // Commit 16: Add click handler for overflow buttons
 
 // Commit 17: Add post-container detection after scroll
+
+// Commit 18: Add scroll stabilization with no-change counter
