@@ -32,3 +32,5 @@ yarn-error.log*
 // Commit 15: Add overflow button selector for more actions
 
 // Commit 16: Add click handler for overflow buttons
+
+// Commit 17: Add post-container detection after scroll
