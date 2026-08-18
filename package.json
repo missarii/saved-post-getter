@@ -10,3 +10,5 @@
     "playwright": "^1.50.0"
   }
 }
+
+// Commit 22: Add fallback href extraction from dropdown
