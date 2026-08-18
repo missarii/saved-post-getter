@@ -38,3 +38,5 @@ yarn-error.log*
 // Commit 18: Add scroll stabilization with no-change counter
 
 // Commit 19: Add viewport resize for consistent rendering
+
+// Commit 20: Implement extractPostLinkFromDropdown function
