@@ -16,3 +16,5 @@
 // Commit 23: Add link deduplication with Set
 
 // Commit 24: Add link normalization to absolute URLs
+
+// Commit 25: Add output file writing with timestamp
