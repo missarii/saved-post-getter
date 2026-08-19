@@ -14,3 +14,5 @@
 // Commit 22: Add fallback href extraction from dropdown
 
 // Commit 23: Add link deduplication with Set
+
+// Commit 24: Add link normalization to absolute URLs
