@@ -22,3 +22,5 @@
 // Commit 26: Add existing links loading for incremental runs
 
 // Commit 27: Implement main() async function
+
+// Commit 28: Add process exit on fatal errors
