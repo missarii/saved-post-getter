@@ -20,3 +20,5 @@
 // Commit 25: Add output file writing with timestamp
 
 // Commit 26: Add existing links loading for incremental runs
+
+// Commit 27: Implement main() async function
