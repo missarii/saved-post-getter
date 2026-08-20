@@ -18,3 +18,5 @@
 // Commit 24: Add link normalization to absolute URLs
 
 // Commit 25: Add output file writing with timestamp
+
+// Commit 26: Add existing links loading for incremental runs
