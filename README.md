@@ -7,3 +7,5 @@ A browser automation agent that extracts saved LinkedIn post links.
 // Commit 33: Add Socket.io for real-time log streaming
 
 // Commit 34: Implement /api/status endpoint
+
+// Commit 35: Implement /api/start endpoint to spawn automation
