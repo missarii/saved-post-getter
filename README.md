@@ -15,3 +15,5 @@ A browser automation agent that extracts saved LinkedIn post links.
 // Commit 37: Implement /api/results endpoint
 
 // Commit 38: Implement /api/download endpoint for JSON
+
+// Commit 39: Add automation process state management
