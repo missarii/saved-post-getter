@@ -4,3 +4,5 @@ const { firefox } = require('playwright');
 // Commit 42: Create frontend/css/style.css with dark theme
 
 // Commit 43: Create frontend/js/app.js with Socket.io client
+
+// Commit 44: Add start/stop automation buttons in UI
