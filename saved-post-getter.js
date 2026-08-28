@@ -6,3 +6,5 @@ const { firefox } = require('playwright');
 // Commit 43: Create frontend/js/app.js with Socket.io client
 
 // Commit 44: Add start/stop automation buttons in UI
+
+// Commit 45: Add live log terminal with scroll
