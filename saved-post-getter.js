@@ -8,3 +8,5 @@ const { firefox } = require('playwright');
 // Commit 44: Add start/stop automation buttons in UI
 
 // Commit 45: Add live log terminal with scroll
+
+// Commit 46: Add results table with copy buttons
