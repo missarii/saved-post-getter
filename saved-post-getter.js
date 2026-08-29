@@ -10,3 +10,5 @@ const { firefox } = require('playwright');
 // Commit 45: Add live log terminal with scroll
 
 // Commit 46: Add results table with copy buttons
+
+// Commit 47: Add statistics dashboard cards
