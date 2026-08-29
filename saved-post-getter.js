@@ -12,3 +12,5 @@ const { firefox } = require('playwright');
 // Commit 46: Add results table with copy buttons
 
 // Commit 47: Add statistics dashboard cards
+
+// Commit 48: Add download JSON button
