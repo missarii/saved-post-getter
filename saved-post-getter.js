@@ -14,3 +14,5 @@ const { firefox } = require('playwright');
 // Commit 47: Add statistics dashboard cards
 
 // Commit 48: Add download JSON button
+
+// Commit 49: Add responsive mobile styles
