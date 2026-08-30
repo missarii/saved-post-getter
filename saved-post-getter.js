@@ -20,3 +20,5 @@ const { firefox } = require('playwright');
 // Commit 50: Fix Firefox profile lock handling
 
 // Commit 51: Add launchPersistentContext instead of launch args
+
+// Commit 52: Fix context close in finally block
