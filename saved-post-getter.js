@@ -18,3 +18,5 @@ const { firefox } = require('playwright');
 // Commit 49: Add responsive mobile styles
 
 // Commit 50: Fix Firefox profile lock handling
+
+// Commit 51: Add launchPersistentContext instead of launch args
