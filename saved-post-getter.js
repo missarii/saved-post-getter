@@ -16,3 +16,5 @@ const { firefox } = require('playwright');
 // Commit 48: Add download JSON button
 
 // Commit 49: Add responsive mobile styles
+
+// Commit 50: Fix Firefox profile lock handling
