@@ -22,3 +22,5 @@ const { firefox } = require('playwright');
 // Commit 51: Add launchPersistentContext instead of launch args
 
 // Commit 52: Fix context close in finally block
+
+// Commit 53: Improve dropdown item text trimming
