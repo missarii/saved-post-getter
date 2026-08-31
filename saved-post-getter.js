@@ -26,3 +26,5 @@ const { firefox } = require('playwright');
 // Commit 53: Improve dropdown item text trimming
 
 // Commit 54: Add error boundary for clipboard access
+
+// Commit 55: Refactor extractPostLinkFromDropdown for reliability
