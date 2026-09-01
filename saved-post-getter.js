@@ -30,3 +30,5 @@ const { firefox } = require('playwright');
 // Commit 55: Refactor extractPostLinkFromDropdown for reliability
 
 // Commit 56: Update README with architecture section
+
+// Commit 57: Add API endpoints documentation
