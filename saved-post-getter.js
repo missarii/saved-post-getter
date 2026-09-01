@@ -28,3 +28,5 @@ const { firefox } = require('playwright');
 // Commit 54: Add error boundary for clipboard access
 
 // Commit 55: Refactor extractPostLinkFromDropdown for reliability
+
+// Commit 56: Update README with architecture section
