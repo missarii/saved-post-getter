@@ -32,3 +32,5 @@ const { firefox } = require('playwright');
 // Commit 56: Update README with architecture section
 
 // Commit 57: Add API endpoints documentation
+
+// Commit 58: Fix status indicator animation
