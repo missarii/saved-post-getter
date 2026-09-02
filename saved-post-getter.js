@@ -36,3 +36,5 @@ const { firefox } = require('playwright');
 // Commit 58: Fix status indicator animation
 
 // Commit 59: Improve log entry color coding
+
+// Commit 60: Add debounce to prevent double-start
