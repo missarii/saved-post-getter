@@ -34,3 +34,5 @@ const { firefox } = require('playwright');
 // Commit 57: Add API endpoints documentation
 
 // Commit 58: Fix status indicator animation
+
+// Commit 59: Improve log entry color coding
