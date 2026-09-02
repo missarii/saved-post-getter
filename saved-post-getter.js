@@ -38,3 +38,5 @@ const { firefox } = require('playwright');
 // Commit 59: Improve log entry color coding
 
 // Commit 60: Add debounce to prevent double-start
+
+// Commit 61: Fix results table rendering on empty state
