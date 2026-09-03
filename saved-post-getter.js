@@ -42,3 +42,5 @@ const { firefox } = require('playwright');
 // Commit 61: Fix results table rendering on empty state
 
 // Commit 62: Add Taste Skill design notes to README
+
+// Commit 63: Final cleanup and production readiness
