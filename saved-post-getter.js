@@ -40,3 +40,5 @@ const { firefox } = require('playwright');
 // Commit 60: Add debounce to prevent double-start
 
 // Commit 61: Fix results table rendering on empty state
+
+// Commit 62: Add Taste Skill design notes to README
