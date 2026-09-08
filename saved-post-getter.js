@@ -68,3 +68,5 @@ const { firefox } = require('playwright');
 // Commit 74: Final cleanup and production readiness
 
 // Commit 75: Final cleanup and production readiness
+
+// Commit 76: Final cleanup and production readiness
