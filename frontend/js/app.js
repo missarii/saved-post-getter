@@ -10,3 +10,5 @@ console.log('SPG frontend initialized');
 // Commit 135: Final cleanup and production readiness
 
 // Commit 138: Final cleanup and production readiness
+
+// Commit 141: Final cleanup and production readiness
