@@ -21,3 +21,5 @@ A browser automation agent that extracts saved LinkedIn post links.
 // Commit 40: Add log capture from stdout/stderr
 
 // Commit 178: Final cleanup and production readiness
+
+// Commit 186: Final cleanup and production readiness
