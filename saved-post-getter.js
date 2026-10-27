@@ -16,6 +16,12 @@ const OUTPUT_FILE = path.join(OUTPUT_DIR, 'saved-post-links.json');
 const FIREFOX_PROFILES_DIR = path.join(os.homedir(), '.mozilla', 'firefox');
 const FIREFOX_PROFILES_INI = path.join(FIREFOX_PROFILES_DIR, 'profiles.ini');
 
+function isFirefoxProfileLocked(profileDir) {
+  if (!profileDir || !fs.existsSync(profileDir)) return false;
+  return fs.existsSync(path.join(profileDir, 'lock')) ||
+         fs.existsSync(path.join(profileDir, '.parentlock'));
+}
+
 function getDefaultFirefoxProfile() {
   if (!fs.existsSync(FIREFOX_PROFILES_INI)) return null;
   return parseProfilesIni(fs.readFileSync(FIREFOX_PROFILES_INI, 'utf-8'));
@@ -142,9 +148,20 @@ async function main() {
   let page;
   try {
     if (profileDir && fs.existsSync(profileDir)) {
+      if (isFirefoxProfileLocked(profileDir)) {
+        console.log('[FATAL] Firefox profile is locked by a running instance.');
+        console.log(`[FATAL] Profile path: ${profileDir}`);
+        console.log('[FATAL] Playwright cannot reuse a profile that is already open.');
+        console.log('\n[SOLUTION] Close all Firefox windows and re-run this script:');
+        console.log('  1) pkill -f firefox');
+        console.log('  2) rm -f ~/.mozilla/firefox/*/lock ~/.mozilla/firefox/*/.parentlock');
+        console.log('  3) node saved-post-getter.js');
+        process.exit(1);
+      }
       context = await firefox.launchPersistentContext(profileDir, {
         headless: true,
         viewport: { width: 1280, height: 800 },
+        args: ['--no-remote'],
       });
       page = context.pages()[0];
     } else {
