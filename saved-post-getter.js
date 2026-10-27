@@ -1,11 +1,11 @@
 #!/usr/bin/env node
 /**
  * LinkedIn Saved Posts Getter
- * Browser automation agent that extracts all saved LinkedIn post links using Firefox.
+ * Browser automation agent that extracts all saved LinkedIn post links using Chromium.
  * No AI model needed — pure DOM-based automation.
  */
 
-const { firefox } = require('playwright');
+const { chromium } = require('playwright');
 const fs = require('fs');
 const path = require('path');
 const os = require('os');
@@ -13,12 +13,8 @@ const os = require('os');
 const LINKEDIN_SAVED_POSTS_URL = 'https://www.linkedin.com/my-items/saved-posts/';
 const OUTPUT_DIR = path.join(__dirname, 'output');
 const OUTPUT_FILE = path.join(OUTPUT_DIR, 'saved-post-links.json');
-const FIREFOX_PROFILES_DIR = path.join(os.homedir(), '.mozilla', 'firefox');
-const FIREFOX_PROFILES_INI = path.join(FIREFOX_PROFILES_DIR, 'profiles.ini');
-
-// Dedicated automation profile that coexists with your running Firefox login session.
-// This ensures the automation NEVER conflicts with your regular Firefox window.
-const AUTOMATION_PROFILE_DIR = path.join(FIREFOX_PROFILES_DIR, 'saved-post-getter');
+// Dedicated automation profile directory for Chromium
+const CHROMIUM_USER_DATA_DIR = path.join(os.homedir(), '.config', 'chromium', 'Default\\ Automation');
 
 function ensureOutputDir() {
   if (!fs.existsSync(OUTPUT_DIR)) fs.mkdirSync(OUTPUT_DIR, { recursive: true });
@@ -122,19 +118,15 @@ async function main() {
   console.log('  LinkedIn Saved Posts Getter');
   console.log('========================================\n');
 
-  // Always use the dedicated automation profile — never touches your normal Firefox
-  fs.mkdirSync(AUTOMATION_PROFILE_DIR, { recursive: true });
-  console.log(`[INFO] Automation Firefox profile: ${AUTOMATION_PROFILE_DIR}`);
+  // Ensure dedicated Chromium user data directory exists
+  fs.mkdirSync(CHROMIUM_USER_DATA_DIR, { recursive: true });
+  console.log(`[INFO] Chromium user data dir: ${CHROMIUM_USER_DATA_DIR}`);
 
-  // Clean up stale lock files from a previous crashed run
-  for (const lf of [
-    path.join(AUTOMATION_PROFILE_DIR, 'lock'),
-    path.join(AUTOMATION_PROFILE_DIR, '.parentlock'),
-  ]) {
-    if (fs.existsSync(lf)) {
-      console.log(`[WARN] Removing stale lock file: ${lf}`);
-      try { fs.unlinkSync(lf); } catch (e) { /* ignore */ }
-    }
+  // Clean up any stale lock files
+  const lockFile = path.join(CHROMIUM_USER_DATA_DIR, 'Singleton Lock');
+  if (fs.existsSync(lockFile)) {
+    console.log('[WARN] Removing stale Chromium lock file');
+    try { fs.unlinkSync(lockFile); } catch (e) { /* ignore */ }
   }
   ensureOutputDir();
   const existingLinks = loadExistingLinks();
@@ -146,11 +138,12 @@ async function main() {
   let page = null;
 
   try {
-    console.log('[INFO] Launching Firefox (dedicated automation profile)...');
-    context = await firefox.launchPersistentContext(AUTOMATION_PROFILE_DIR, {
+    console.log('[INFO] Launching Chromium (dedicated user data dir)...');
+    // Launch Chromium with dedicated user data dir so it coexists with existing Chrome
+    context = await chromium.launchPersistentContext(CHROMIUM_USER_DATA_DIR, {
       headless: true,
       viewport: { width: 1280, height: 800 },
-      args: ['--no-remote'],
+      args: ['--no-remote', '--disable-renderer-backgrounding'],
     });
     page = context.pages()[0];
 
@@ -160,7 +153,7 @@ async function main() {
 
     const url = page.url();
     if (url.includes('login') || url.includes('authwall')) {
-      console.log('\n[LOGIN REQUIRED] Please log in manually in the Firefox window.');
+      console.log('\n[LOGIN REQUIRED] Please log in manually in the Chromium window.');
       console.log('After logging in, press Enter here to continue...');
       await new Promise((res) => process.stdin.once('data', res));
       await page.goto(LINKEDIN_SAVED_POSTS_URL, { waitUntil: 'domcontentloaded', timeout: 60000 });
