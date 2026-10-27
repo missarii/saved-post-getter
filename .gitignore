@@ -1,50 +1,8 @@
 node_modules/
-output/
-.DS_Store
+output/saved-post-links.json
+package-lock.env
+.DS_Thumbs
 .env
 npm-debug.log*
+yarn-debug.log*
 yarn-error.log*
-
-// Commit 3: Create initial README with project overview
-
-// Commit 4: Set up project directory structure
-
-// Commit 5: Add npm scripts for start and browser install
-
-// Commit 6: Create saved-post-getter.js skeleton with imports
-
-// Commit 7: Add Firefox profile detection from profiles.ini
-
-// Commit 8: Implement parseProfilesIni helper function
-
-// Commit 9: Add LinkedIn saved posts URL constant
-
-// Commit 10: Implement basic Firefox launch with user profile
-
-// Commit 11: Add page navigation to saved posts page
-
-// Commit 12: Add login wall detection and manual login prompt
-
-// Commit 13: Add basic error handling for navigation failures
-
-// Commit 14: Implement scroll-to-load-all-posts function
-
-// Commit 15: Add overflow button selector for more actions
-
-// Commit 16: Add click handler for overflow buttons
-
-// Commit 17: Add post-container detection after scroll
-
-// Commit 18: Add scroll stabilization with no-change counter
-
-// Commit 19: Add viewport resize for consistent rendering
-
-// Commit 20: Implement extractPostLinkFromDropdown function
-
-// Commit 176: Final cleanup and production readiness
-
-// Commit 184: Final cleanup and production readiness
-
-// Commit 192: Final cleanup and production readiness
-
-// Commit 200: Final cleanup and production readiness

@@ -1,42 +1,450 @@
-:root { --bg: #0a0a0a; --text: #f5f5f5; }
-body { background: var(--bg); color: var(--text); }
+/*
+ * Saved Posts Getter — Frontend Styles
+ * Design direction inspired by Taste Skill (tasteskill.dev)
+ * Anti-slop: clean, editorial, minimalist. Dark mode by default.
+ * No generic templates. Restrained color. Generous whitespace. Sharp type.
+ */
 
-// Commit 125: Final cleanup and production readiness
+:root {
+  --bg: #0a0a0a;
+  --bg-panel: #111111;
+  --bg-panel-hover: #161616;
+  --bg-input: #0d0d0d;
+  --text: #f5f5f5;
+  --text-muted: #8a8a8a;
+  --text-subtle: #5a5a5a;
+  --border: #1f1f1f;
+  --border-focus: #3a3a3a;
+  --accent: #e2a04f;
+  --accent-hover: #f0c07a;
+  --accent-muted: #2a2418;
+  --success: #6fbf75;
+  --error: #d36f6f;
+  --warn: #e2a04f;
+  --radius: 8px;
+  --radius-sm: 4px;
+  --shadow: 0 1px 3px rgba(0,0,0,0.4);
+  --shadow-lg: 0 8px 24px rgba(0,0,0,0.5);
+  --transition: 0.2s ease;
+  --mono: 'IBM Plex Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+  --sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
 
-// Commit 128: Final cleanup and production readiness
+* { box-sizing: border-box; margin: 0; padding: 0; }
 
-// Commit 131: Final cleanup and production readiness
+html { scroll-behavior: smooth; }
 
-// Commit 134: Final cleanup and production readiness
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--sans);
+  font-size: 16px;
+  line-height: 1.5;
+  min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+}
 
-// Commit 137: Final cleanup and production readiness
+a { color: var(--accent); text-decoration: none; transition: color var(--transition); }
+a:hover { color: var(--accent-hover); }
 
-// Commit 140: Final cleanup and production readiness
+.container {
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 0 24px;
+}
 
-// Commit 143: Final cleanup and production readiness
+.visually-hidden {
+  position: absolute;
+  width: 1px; height: 1px; padding: 0; margin: -1px;
+  overflow: hidden; clip: rect(0,0,0,0); border: 0;
+}
 
-// Commit 146: Final cleanup and production readiness
+.header {
+  padding: 32px 0;
+  border-bottom: 1px solid var(--border);
+}
 
-// Commit 149: Final cleanup and production readiness
+.header-inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
 
-// Commit 152: Final cleanup and production readiness
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
 
-// Commit 155: Final cleanup and production readiness
+.brand-mark {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  background: var(--accent);
+  color: var(--bg);
+  border-radius: var(--radius-sm);
+  font-weight: 600;
+  font-size: 18px;
+  letter-spacing: -0.5px;
+}
 
-// Commit 158: Final cleanup and production readiness
+.brand-name {
+  font-size: 20px;
+  font-weight: 600;
+  letter-spacing: -0.25px;
+}
 
-// Commit 161: Final cleanup and production readiness
+.header-actions {
+  display: flex;
+  gap: 12px;
+}
 
-// Commit 164: Final cleanup and production readiness
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 10px 20px;
+  font-family: var(--sans);
+  font-size: 14px;
+  font-weight: 500;
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: all var(--transition);
+  white-space: nowrap;
+}
 
-// Commit 167: Final cleanup and production readiness
+.btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
 
-// Commit 170: Final cleanup and production readiness
+.btn-primary {
+  background: var(--accent);
+  color: #0b0b0b;
+  border-color: var(--accent);
+}
 
-// Commit 174: Final cleanup and production readiness
+.btn-primary:hover:not(:disabled) {
+  background: var(--accent-hover);
+  border-color: var(--accent-hover);
+  transform: translateY(-1px);
+  box-shadow: var(--shadow);
+}
 
-// Commit 182: Final cleanup and production readiness
+.btn-danger {
+  background: transparent;
+  color: var(--error);
+  border-color: #3a2a2a;
+}
 
-// Commit 190: Final cleanup and production readiness
+.btn-danger:hover:not(:disabled) {
+  background: #2a1a1a;
+  border-color: var(--error);
+  transform: translateY(-1px);
+}
 
-// Commit 198: Final cleanup and production readiness
+.btn-ghost {
+  background: transparent;
+  color: var(--text-muted);
+  border-color: var(--border);
+}
+
+.btn-ghost:hover:not(:disabled) {
+  background: var(--bg-panel-hover);
+  color: var(--text);
+  border-color: var(--border-focus);
+}
+
+.btn-large { padding: 12px 24px; font-size: 15px; }
+.btn-small { padding: 8px 16px; font-size: 13px; }
+
+.hero {
+  padding: 64px 0 48px;
+}
+
+.hero-inner {
+  text-align: left;
+  max-width: 720px;
+}
+
+.hero-title {
+  font-size: 40px;
+  font-weight: 600;
+  line-height: 1.15;
+  letter-spacing: -0.5px;
+  margin-bottom: 16px;
+}
+
+.hero-sub {
+  font-size: 17px;
+  color: var(--text-muted);
+  line-height: 1.6;
+  max-width: 640px;
+}
+
+.controls {
+  padding: 48px 0;
+}
+
+.controls-inner {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.status-card {
+  background: var(--bg-panel);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 32px;
+  box-shadow: var(--shadow);
+}
+
+.status-row {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 28px;
+  flex-wrap: wrap;
+}
+
+.status-indicator {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--text-subtle);
+  box-shadow: 0 0 0 2px rgba(0,0,0,0.6);
+}
+
+.dot-idle { background: var(--text-subtle); }
+.dot-running {
+  background: var(--accent);
+  animation: pulse 2s infinite;
+}
+.dot-completed { background: var(--success); }
+.dot-error { background: var(--error); }
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+.status-text {
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--text-muted);
+}
+
+.status-text.running { color: var(--accent); }
+.status-text.completed { color: var(--success); }
+.status-text.error { color: var(--error); }
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+  border-top: 1px solid var(--border);
+  padding-top: 24px;
+}
+
+.stat { text-align: center; }
+
+.stat-value {
+  font-family: var(--mono);
+  font-size: 20px;
+  font-weight: 500;
+  color: var(--text);
+}
+
+.stat-label {
+  font-size: 12px;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-top: 4px;
+}
+
+.logs {
+  padding: 48px 0;
+}
+
+.logs-inner {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.section-title {
+  font-size: 18px;
+  font-weight: 600;
+  letter-spacing: -0.25px;
+}
+
+.log-terminal {
+  background: #050505;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 20px;
+  font-family: var(--mono);
+  font-size: 13px;
+  line-height: 1.5;
+  max-height: 320px;
+  overflow-y: auto;
+  box-shadow: var(--shadow);
+}
+
+.log-entry {
+  padding: 6px 0;
+  border-bottom: 1px solid rgba(255,255,255,0.03);
+  white-space: pre-wrap;
+  word-break: break-all;
+}
+
+.log-entry:last-child { border-bottom: none; }
+
+.log-entry.info { color: var(--text-muted); }
+.log-entry.success { color: var(--success); }
+.log-entry.error { color: var(--error); }
+.log-entry.warn { color: var(--warn); }
+
+.log-empty {
+  color: var(--text-subtle);
+  padding: 20px;
+  text-align: center;
+}
+
+.results {
+  padding: 48px 0 80px;
+}
+
+.results-inner {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.results-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.results-actions {
+  display: flex;
+  gap: 10px;
+}
+
+.results-table-wrap {
+  background: var(--bg-panel);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+  box-shadow: var(--shadow);
+}
+
+.results-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-family: var(--sans);
+  font-size: 14px;
+}
+
+.results-table th,
+.results-table td {
+  padding: 14px 16px;
+  text-align: left;
+  border-bottom: 1px solid var(--border);
+}
+
+.results-table th {
+  font-weight: 600;
+  color: var(--text-muted);
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  background: var(--bg-input);
+}
+
+.results-table tr:last-child td { border-bottom: none; }
+.results-table tr:hover td { background: var(--bg-panel-hover); }
+
+.link-cell {
+  font-family: var(--mono);
+  font-size: 12px;
+  color: var(--accent);
+  word-break: break-all;
+  max-width: 400px;
+}
+
+.actions-cell {
+  white-space: nowrap;
+}
+
+.btn-copy-link {
+  background: transparent;
+  color: var(--text-muted);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 4px 10px;
+  font-size: 11px;
+  font-family: var(--sans);
+  cursor: pointer;
+  transition: all var(--transition);
+}
+
+.btn-copy-link:hover {
+  color: var(--text);
+  border-color: var(--border-focus);
+  background: var(--bg-panel-hover);
+}
+
+.results-empty {
+  background: var(--bg-panel);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 48px 24px;
+  text-align: center;
+  color: var(--text-muted);
+}
+
+.footer {
+  padding: 48px 0;
+  border-top: 1px solid var(--border);
+  color: var(--text-subtle);
+  font-size: 13px;
+}
+
+.footer-inner {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  text-align: center;
+}
+
+@media (max-width: 640px) {
+  .hero-title { font-size: 30px; }
+  .stats-grid { grid-template-columns: repeat(2, 1fr); }
+  .status-row { flex-direction: column; align-items: flex-start; }
+  .header-inner { flex-direction: column; gap: 16px; align-items: flex-start; }
+  .results-table { font-size: 12px; }
+  .results-table th,
+  .results-table td { padding: 10px 12px; }
+}

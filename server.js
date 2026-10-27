@@ -1,68 +1,150 @@
+/**
+ * LinkedIn Saved Posts Getter - Backend Server
+ * Express.js server that wraps the Playwright automation script
+ * Provides API endpoints to start/stop automation and retrieve results
+ */
+
 const express = require('express');
+const http = require('http');
+const { Server } = require('socket.io');
+const path = require('path');
+const { spawn } = require('child_process');
+const fs = require('fs');
+
 const app = express();
-const PORT = 3000;
-app.listen(PORT, () => console.log(`Server on ${PORT}`));
+const server = http.createServer(app);
+const io = new Server(server, {
+  cors: { origin: '*' }
+});
 
-// Commit 93: Final cleanup and production readiness
+const PORT = process.env.PORT || 3000;
+const SCRIPT_PATH = path.join(__dirname, 'saved-post-getter.js');
+const OUTPUT_FILE = path.join(__dirname, 'output', 'saved-post-links.json');
 
-// Commit 94: Final cleanup and production readiness
+let automationProcess = null;
+let automationStatus = 'idle';
+let automationLogs = [];
+let automationResults = null;
 
-// Commit 95: Final cleanup and production readiness
+app.use(express.json());
+app.use(express.static(path.join(__dirname, 'frontend')));
 
-// Commit 96: Final cleanup and production readiness
+function addLog(message, type = 'info') {
+  const timestamp = new Date().toISOString();
+  const logEntry = { timestamp, message, type };
+  automationLogs.push(logEntry);
+  if (automationLogs.length > 500) automationLogs.shift();
+  io.emit('log', logEntry);
+  console.log(`[${type.toUpperCase()}] ${message}`);
+}
 
-// Commit 97: Final cleanup and production readiness
+app.get('/', (req, res) => {
+  res.sendFile(path.join(__dirname, 'frontend', 'index.html'));
+});
 
-// Commit 98: Final cleanup and production readiness
+app.get('/api/status', (req, res) => {
+  res.json({
+    status: automationStatus,
+    logs: automationLogs.slice(-50),
+    results: automationResults
+  });
+});
 
-// Commit 99: Final cleanup and production readiness
+app.post('/api/start', (req, res) => {
+  if (automationStatus === 'running') {
+    return res.status(409).json({ error: 'Automation already running' });
+  }
 
-// Commit 100: Final cleanup and production readiness
+  automationStatus = 'running';
+  automationLogs = [];
+  automationResults = null;
+  addLog('Starting LinkedIn Saved Posts Getter...', 'info');
 
-// Commit 101: Final cleanup and production readiness
+  automationProcess = spawn('node', [SCRIPT_PATH], {
+    cwd: __dirname,
+    stdio: ['pipe', 'pipe', 'pipe']
+  });
 
-// Commit 102: Final cleanup and production readiness
+  automationProcess.stdout.on('data', (data) => {
+    const text = data.toString().trim();
+    if (text) {
+      text.split('\n').forEach(line => {
+        if (line.trim()) addLog(line.trim(), 'info');
+      });
+    }
+  });
 
-// Commit 103: Final cleanup and production readiness
+  automationProcess.stderr.on('data', (data) => {
+    const text = data.toString().trim();
+    if (text) {
+      text.split('\n').forEach(line => {
+        if (line.trim()) addLog(line.trim(), 'error');
+      });
+    }
+  });
 
-// Commit 104: Final cleanup and production readiness
+  automationProcess.on('close', (code) => {
+    automationProcess = null;
+    if (code === 0) {
+      automationStatus = 'completed';
+      addLog('Automation completed successfully.', 'success');
+      try {
+        if (fs.existsSync(OUTPUT_FILE)) {
+          automationResults = JSON.parse(fs.readFileSync(OUTPUT_FILE, 'utf-8'));
+          addLog(`Loaded ${automationResults.total} saved post link(s).`, 'success');
+        }
+      } catch (e) {
+        addLog(`Could not read results: ${e.message}`, 'error');
+      }
+    } else {
+      automationStatus = 'error';
+      addLog(`Automation exited with code ${code}`, 'error');
+    }
+    io.emit('status', { status: automationStatus, results: automationResults });
+  });
 
-// Commit 105: Final cleanup and production readiness
+  io.emit('status', { status: automationStatus });
+  res.json({ success: true, status: automationStatus });
+});
 
-// Commit 106: Final cleanup and production readiness
+app.post('/api/stop', (req, res) => {
+  if (automationProcess) {
+    automationProcess.kill();
+    automationProcess = null;
+    automationStatus = 'idle';
+    addLog('Automation stopped by user.', 'warn');
+    io.emit('status', { status: automationStatus });
+  }
+  res.json({ success: true });
+});
 
-// Commit 107: Final cleanup and production readiness
+app.get('/api/results', (req, res) => {
+  if (automationResults) {
+    res.json(automationResults);
+  } else {
+    try {
+      if (fs.existsSync(OUTPUT_FILE)) {
+        const data = JSON.parse(fs.readFileSync(OUTPUT_FILE, 'utf-8'));
+        res.json(data);
+      } else {
+        res.status(404).json({ error: 'No results found' });
+      }
+    } catch (e) {
+      res.status(500).json({ error: e.message });
+    }
+  }
+});
 
-// Commit 108: Final cleanup and production readiness
+app.get('/api/download', (req, res) => {
+  if (fs.existsSync(OUTPUT_FILE)) {
+    res.download(OUTPUT_FILE, 'saved-post-links.json');
+  } else {
+    res.status(404).json({ error: 'No results file found' });
+  }
+});
 
-// Commit 109: Final cleanup and production readiness
+server.listen(PORT, () => {
+  console.log(`Server running at http://localhost:${PORT}`);
+});
 
-// Commit 110: Final cleanup and production readiness
-
-// Commit 111: Final cleanup and production readiness
-
-// Commit 112: Final cleanup and production readiness
-
-// Commit 113: Final cleanup and production readiness
-
-// Commit 114: Final cleanup and production readiness
-
-// Commit 115: Final cleanup and production readiness
-
-// Commit 116: Final cleanup and production readiness
-
-// Commit 117: Final cleanup and production readiness
-
-// Commit 118: Final cleanup and production readiness
-
-// Commit 119: Final cleanup and production readiness
-
-// Commit 120: Final cleanup and production readiness
-
-// Commit 121: Final cleanup and production readiness
-
-// Commit 180: Final cleanup and production readiness
-
-// Commit 188: Final cleanup and production readiness
-
-// Commit 196: Final cleanup and production readiness
+module.exports = { app, server, io };
