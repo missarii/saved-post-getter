@@ -16,40 +16,9 @@ const OUTPUT_FILE = path.join(OUTPUT_DIR, 'saved-post-links.json');
 const FIREFOX_PROFILES_DIR = path.join(os.homedir(), '.mozilla', 'firefox');
 const FIREFOX_PROFILES_INI = path.join(FIREFOX_PROFILES_DIR, 'profiles.ini');
 
-function isFirefoxProfileLocked(profileDir) {
-  if (!profileDir || !fs.existsSync(profileDir)) return false;
-  return fs.existsSync(path.join(profileDir, 'lock')) ||
-         fs.existsSync(path.join(profileDir, '.parentlock'));
-}
-
-function getDefaultFirefoxProfile() {
-  if (!fs.existsSync(FIREFOX_PROFILES_INI)) return null;
-  return parseProfilesIni(fs.readFileSync(FIREFOX_PROFILES_INI, 'utf-8'));
-}
-
-function parseProfilesIni(ini) {
-  const sections = {};
-  let currentSection = null;
-  for (const line of ini.split('\n')) {
-    const t = line.trim();
-    if (!t || t.startsWith('#') || t.startsWith(';')) continue;
-    const m = t.match(/^\[(.+)\]$/);
-    if (m) { currentSection = m[1]; sections[currentSection] = sections[currentSection] || {}; continue; }
-    const eq = t.indexOf('=');
-    if (eq === -1 || !currentSection) continue;
-    sections[currentSection][t.slice(0, eq).trim()] = t.slice(eq + 1).trim();
-  }
-  let defSec = null;
-  for (const [name, props] of Object.entries(sections)) {
-    if (props.Default === '1' && name.startsWith('Profile')) { defSec = name; break; }
-  }
-  if (!defSec) return null;
-  const p = sections[defSec].Path;
-  if (sections[defSec].IsRelative === '1' || sections[defSec].IsRelative === 'true') {
-    return path.join(FIREFOX_PROFILES_DIR, p);
-  }
-  return p;
-}
+// Dedicated automation profile that coexists with your running Firefox login session.
+// This ensures the automation NEVER conflicts with your regular Firefox window.
+const AUTOMATION_PROFILE_DIR = path.join(FIREFOX_PROFILES_DIR, 'saved-post-getter');
 
 function ensureOutputDir() {
   if (!fs.existsSync(OUTPUT_DIR)) fs.mkdirSync(OUTPUT_DIR, { recursive: true });
@@ -81,7 +50,7 @@ async function scrollToLoadAllPosts(page, maxScrolls = 50) {
   for (let i = 0; i < maxScrolls; i++) {
     await page.evaluate(() => window.scrollBy(0, window.innerHeight));
     await page.waitForTimeout(2000);
-    const cnt = await page.locator('.artdeco-card, [data-test-id="main-feed-activity-card"], .saved-posts-card').count();
+    const cnt = await page.locator('.artdeco-card, [data-test-id="main-feed_activity_card"], .saved-posts-card').count();
     if (cnt === prev) {
       noChange++;
       if (noChange >= 3) { console.log(`[INFO] No new posts after ${noChange} scrolls. Stopping.`); break; }
@@ -89,7 +58,7 @@ async function scrollToLoadAllPosts(page, maxScrolls = 50) {
     prev = cnt;
     console.log(`[INFO] Scroll ${i + 1}: ~${cnt} post containers`);
   }
-  return await page.locator('.artdeco-card, [data-test-id="main-feed-activity-card"], .saved-posts-card').count();
+  return await page.locator('.artdeco-card, [data-test-id="main-feed_activity_card"], .saved-posts-card').count();
 }
 
 async function extractPostLinkFromDropdown(page) {
@@ -99,27 +68,44 @@ async function extractPostLinkFromDropdown(page) {
     'text="Copy link to article"',
     'text="Copy link to video"',
     'text="Get link"',
+    'text="Copy link to PDF"',
+    'text="Get link to post"',
+    'text="Get link"',
   ];
-  for (const s of copySelectors) {
+  for (const sel of copySelectors) {
     try {
-      const els = page.locator(s);
-      const count = await els.count();
-      for (let i = 0; i < count; i++) {
-        const el = els.nth(i);
-        if (await el.isVisible({ timeout: 500 })) {
-          await el.click({ timeout: 5000 });
-          await page.waitForTimeout(1000);
+      const el = await page.locator(sel).first().catch(() => null);
+      if (el) {
+        await el.scrollIntoViewIfNeeded({ timeout: 3000 });
+        await page.waitForTimeout(300);
+        await el.click({ timeout: 3000 });
+        await page.waitForTimeout(1500);
+        try {
+          const clipboardText = await page.evaluate(() => navigator.clipboard.readText());
+          if (clipboardText && clipboardText.trim()) return clipboardText.trim();
+        } catch (e) {
           try {
-            const clipboard = await page.evaluate(() => navigator.clipboard.readText());
-            if (clipboard && clipboard.includes('feed/update/urn:li:activity:')) {
-              return clipboard.trim();
-            }
-          } catch (e) { /* clipboard access may be blocked */ }
+            const linkEl = await page.evaluate(() => {
+              const all = document.querySelectorAll('a[href*="/feed/update/urn:li:activity:"]');
+              for (const a of all) {
+                const p = a.closest('li, [class*="card"], [class*="activity"]');
+                if (p) {
+                  const t = p.querySelector('p, [class*="description"], [class*="text"]');
+                  if (t && t.textContent.includes('LinkedIn')) continue;
+                  const link = p.querySelector('a[href*="/feed/update/"]');
+                  if (link) return link.href;
+                }
+              }
+              return null;
+            });
+            if (linkEl) return linkEl;
+          } catch (e) { /* ignore */ }
         }
+        await page.keyboard.press('Escape');
+        await page.waitForTimeout(300);
       }
     } catch (e) { /* try next */ }
   }
-
   try {
     const links = page.locator('a[href*="urn:li:activity:"]');
     const count = await links.count();
@@ -128,7 +114,6 @@ async function extractPostLinkFromDropdown(page) {
       if (h && h.includes('feed/update/urn:li:activity:')) return h;
     }
   } catch (e) { /* ignore */ }
-
   return null;
 }
 
@@ -136,43 +121,43 @@ async function main() {
   console.log('========================================');
   console.log('  LinkedIn Saved Posts Getter');
   console.log('========================================\n');
-  const profileDir = getDefaultFirefoxProfile();
-  if (profileDir) console.log(`[INFO] Firefox profile: ${profileDir}`);
-  else console.log('[WARN] No Firefox profile found. Fresh browser.');
+
+  // Always use the dedicated automation profile — never touches your normal Firefox
+  fs.mkdirSync(AUTOMATION_PROFILE_DIR, { recursive: true });
+  console.log(`[INFO] Automation Firefox profile: ${AUTOMATION_PROFILE_DIR}`);
+
+  // Clean up stale lock files from a previous crashed run
+  for (const lf of [
+    path.join(AUTOMATION_PROFILE_DIR, 'lock'),
+    path.join(AUTOMATION_PROFILE_DIR, '.parentlock'),
+  ]) {
+    if (fs.existsSync(lf)) {
+      console.log(`[WARN] Removing stale lock file: ${lf}`);
+      try { fs.unlinkSync(lf); } catch (e) { /* ignore */ }
+    }
+  }
   ensureOutputDir();
   const existingLinks = loadExistingLinks();
   const existingSet = new Set(existingLinks);
   console.log(`[INFO] Loaded ${existingLinks.length} previously saved link(s).\n`);
-  let browser;
-  let context;
-  let page;
+
+  let browser = null;
+  let context = null;
+  let page = null;
+
   try {
-    if (profileDir && fs.existsSync(profileDir)) {
-      if (isFirefoxProfileLocked(profileDir)) {
-        console.log('[FATAL] Firefox profile is locked by a running instance.');
-        console.log(`[FATAL] Profile path: ${profileDir}`);
-        console.log('[FATAL] Playwright cannot reuse a profile that is already open.');
-        console.log('\n[SOLUTION] Close all Firefox windows and re-run this script:');
-        console.log('  1) pkill -f firefox');
-        console.log('  2) rm -f ~/.mozilla/firefox/*/lock ~/.mozilla/firefox/*/.parentlock');
-        console.log('  3) node saved-post-getter.js');
-        process.exit(1);
-      }
-      context = await firefox.launchPersistentContext(profileDir, {
-        headless: true,
-        viewport: { width: 1280, height: 800 },
-        args: ['--no-remote'],
-      });
-      page = context.pages()[0];
-    } else {
-      browser = await firefox.launch({ headless: true });
-      context = await browser.newContext();
-      page = await context.newPage();
-      await page.setViewportSize({ width: 1280, height: 800 });
-    }
+    console.log('[INFO] Launching Firefox (dedicated automation profile)...');
+    context = await firefox.launchPersistentContext(AUTOMATION_PROFILE_DIR, {
+      headless: true,
+      viewport: { width: 1280, height: 800 },
+      args: ['--no-remote'],
+    });
+    page = context.pages()[0];
+
     console.log('[INFO] Navigating to LinkedIn saved posts page...');
     await page.goto(LINKEDIN_SAVED_POSTS_URL, { waitUntil: 'domcontentloaded', timeout: 60000 });
     await page.waitForTimeout(3000);
+
     const url = page.url();
     if (url.includes('login') || url.includes('authwall')) {
       console.log('\n[LOGIN REQUIRED] Please log in manually in the Firefox window.');
@@ -181,15 +166,20 @@ async function main() {
       await page.goto(LINKEDIN_SAVED_POSTS_URL, { waitUntil: 'domcontentloaded', timeout: 60000 });
       await page.waitForTimeout(3000);
     }
+
     try {
-      await page.waitForSelector('.artdeco-card, [data-test-id="main-feed-activity-card"], .saved-posts-card', { timeout: 15000 });
+      await page.waitForSelector('.artdeco-card, [data-test-id="main-feed_activity_card"], .saved-posts-card', { timeout: 15000 });
     } catch (e) { console.log('[WARN] No post containers found.'); }
+
     await scrollToLoadAllPosts(page, 50);
+
     const buttons = page.locator('button[aria-label*="Click to take more actions on"]');
     const count = await buttons.count();
     console.log(`\n[INFO] Found ${count} overflow button(s).`);
+
     const allLinks = [...existingLinks];
     let newC = 0, skipC = 0, errC = 0;
+
     for (let i = 0; i < count; i++) {
       const btn = buttons.nth(i);
       try {
@@ -202,21 +192,23 @@ async function main() {
           const norm = link.startsWith('http') ? link : `https://www.linkedin.com${link}`;
           if (!existingSet.has(norm)) {
             allLinks.push(norm); existingSet.add(norm); newC++;
-            console.log(`  [${i + 1}/${count}] ✓ ${norm}`);
+            console.log(`  [${i + 1}/${count}] ?? ${norm}`);
           } else {
-            skipC++; console.log(`  [${i + 1}/${count}] ⊘ (duplicate) ${norm}`);
+            skipC++; console.log(`  [${i + 1}/${count}] (duplicate) ${norm}`);
           }
         } else {
-          errC++; console.log(`  [${i + 1}/${count}] ✗ No link found`);
+          errC++; console.log(`  [${i + 1}/${count}] ?? No link found`);
         }
         await page.keyboard.press('Escape');
         await page.waitForTimeout(500);
       } catch (err) {
-        errC++; console.log(`  [${i + 1}/${count}] ✗ ${err.message}`);
+        errC++; console.log(`  [${i + 1}/${count}] ?? ${err.message}`);
         try { await page.keyboard.press('Escape'); } catch (e) { /* ignore */ }
       }
     }
+
     saveLinks(allLinks);
+
     console.log('\n========================================');
     console.log('  SUMMARY');
     console.log('========================================');
@@ -230,6 +222,10 @@ async function main() {
   } catch (err) {
     console.error('[FATAL]', err.message);
     process.exit(1);
-  } finally { if (context) await context.close(); if (browser) await browser.close(); }
+  } finally {
+    if (context) await context.close();
+    if (browser) await browser.close();
+  }
 }
+
 main().catch((err) => { console.error('[FATAL]', err); process.exit(1); });
