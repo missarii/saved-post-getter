@@ -1,2 +1,8 @@
+#!/usr/bin/env bash
+set -e
+
+# Free port 3000 if occupied
 lsof -ti:3000 | xargs -r kill -9 2>/dev/null || true
+
+# Start the application server
 npm start
