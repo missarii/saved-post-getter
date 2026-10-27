@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 /**
  * LinkedIn Saved Posts Getter
- * Browser automation agent that extracts all saved LinkedIn post links using Chromium.
- * No AI model needed — pure DOM-based automation.
+ * Browser automation agent that extracts all saved LinkedIn post links.
+ * Uses existing Chrome window if available.
  */
 
 const { chromium } = require('playwright');
@@ -13,8 +13,6 @@ const os = require('os');
 const LINKEDIN_SAVED_POSTS_URL = 'https://www.linkedin.com/my-items/saved-posts/';
 const OUTPUT_DIR = path.join(__dirname, 'output');
 const OUTPUT_FILE = path.join(OUTPUT_DIR, 'saved-post-links.json');
-// Dedicated automation profile directory for Chromium
-const CHROMIUM_USER_DATA_DIR = path.join(os.homedir(), '.config', 'chromium', 'Default\\ Automation');
 
 function ensureOutputDir() {
   if (!fs.existsSync(OUTPUT_DIR)) fs.mkdirSync(OUTPUT_DIR, { recursive: true });
@@ -118,107 +116,102 @@ async function main() {
   console.log('  LinkedIn Saved Posts Getter');
   console.log('========================================\n');
 
-  // Ensure dedicated Chromium user data directory exists
-  fs.mkdirSync(CHROMIUM_USER_DATA_DIR, { recursive: true });
-  console.log(`[INFO] Chromium user data dir: ${CHROMIUM_USER_DATA_DIR}`);
+  // Try to launch Chromium - if Chrome is already running with user data,
+  // it will reuse the profile. If not, it creates a new session.
+  console.log('[INFO] Launching Chromium...');
 
-  // Clean up any stale lock files
-  const lockFile = path.join(CHROMIUM_USER_DATA_DIR, 'Singleton Lock');
-  if (fs.existsSync(lockFile)) {
-    console.log('[WARN] Removing stale Chromium lock file');
-    try { fs.unlinkSync(lockFile); } catch (e) { /* ignore */ }
-  }
-  ensureOutputDir();
-  const existingLinks = loadExistingLinks();
-  const existingSet = new Set(existingLinks);
-  console.log(`[INFO] Loaded ${existingLinks.length} previously saved link(s).\n`);
+  // Use headless: false so user can see what's happening, or true for background
+  const launchArgs = ['--no-remote', '--disable-renderer-backgrounding'];
 
-  let browser = null;
-  let context = null;
-  let page = null;
-
+  let browser;
   try {
-    console.log('[INFO] Launching Chromium (dedicated user data dir)...');
-    // Launch Chromium with dedicated user data dir so it coexists with existing Chrome
-    context = await chromium.launchPersistentContext(CHROMIUM_USER_DATA_DIR, {
-      headless: true,
-      viewport: { width: 1280, height: 800 },
-      args: ['--no-remote', '--disable-renderer-backgrounding'],
+    browser = await chromium.launch({
+      headless: false,
+      args: launchArgs
     });
-    page = context.pages()[0];
+    console.log('[INFO] Chromium launched - attempting to reuse existing Chrome session');
+  } catch (err) {
+    console.log('[WARN] Could not launch Chromium normally, trying persistent context...');
+    browser = await chromium.launch({
+      headless: false,
+      args: ['--no-remote', '--disable-renderer-backgrounding', '--user-data-dir=' + path.join(os.homedir(), '.config', 'google-chrome', 'Default')]
+    });
+  }
 
-    console.log('[INFO] Navigating to LinkedIn saved posts page...');
+  const context = await browser.newContext();
+  const page = await context.newPage();
+  await page.setViewportSize({ width: 1280, height: 800 });
+
+  console.log('[INFO] Navigating to LinkedIn saved posts page...');
+  await page.goto(LINKEDIN_SAVED_POSTS_URL, { waitUntil: 'domcontentloaded', timeout: 60000 });
+  await page.waitForTimeout(3000);
+
+  const url = page.url();
+  console.log(`[INFO] Current URL: ${url}`);
+
+  if (url.includes('login') || url.includes('authwall')) {
+    console.log('\n[LOGIN REQUIRED] Please log in manually in the Chrome window.');
+    console.log('(You are logged into Chrome - use that window)');
+    console.log('After logging in, press Enter here to continue...');
+    await new Promise((res) => process.stdin.once('data', res));
     await page.goto(LINKEDIN_SAVED_POSTS_URL, { waitUntil: 'domcontentloaded', timeout: 60000 });
     await page.waitForTimeout(3000);
-
-    const url = page.url();
-    if (url.includes('login') || url.includes('authwall')) {
-      console.log('\n[LOGIN REQUIRED] Please log in manually in the Chromium window.');
-      console.log('After logging in, press Enter here to continue...');
-      await new Promise((res) => process.stdin.once('data', res));
-      await page.goto(LINKEDIN_SAVED_POSTS_URL, { waitUntil: 'domcontentloaded', timeout: 60000 });
-      await page.waitForTimeout(3000);
-    }
-
-    try {
-      await page.waitForSelector('.artdeco-card, [data-test-id="main-feed_activity_card"], .saved-posts-card', { timeout: 15000 });
-    } catch (e) { console.log('[WARN] No post containers found.'); }
-
-    await scrollToLoadAllPosts(page, 50);
-
-    const buttons = page.locator('button[aria-label*="Click to take more actions on"]');
-    const count = await buttons.count();
-    console.log(`\n[INFO] Found ${count} overflow button(s).`);
-
-    const allLinks = [...existingLinks];
-    let newC = 0, skipC = 0, errC = 0;
-
-    for (let i = 0; i < count; i++) {
-      const btn = buttons.nth(i);
-      try {
-        await btn.scrollIntoViewIfNeeded({ timeout: 5000 });
-        await page.waitForTimeout(500);
-        await btn.click({ timeout: 5000 });
-        await page.waitForTimeout(1500);
-        const link = await extractPostLinkFromDropdown(page);
-        if (link) {
-          const norm = link.startsWith('http') ? link : `https://www.linkedin.com${link}`;
-          if (!existingSet.has(norm)) {
-            allLinks.push(norm); existingSet.add(norm); newC++;
-            console.log(`  [${i + 1}/${count}] ?? ${norm}`);
-          } else {
-            skipC++; console.log(`  [${i + 1}/${count}] (duplicate) ${norm}`);
-          }
-        } else {
-          errC++; console.log(`  [${i + 1}/${count}] ?? No link found`);
-        }
-        await page.keyboard.press('Escape');
-        await page.waitForTimeout(500);
-      } catch (err) {
-        errC++; console.log(`  [${i + 1}/${count}] ?? ${err.message}`);
-        try { await page.keyboard.press('Escape'); } catch (e) { /* ignore */ }
-      }
-    }
-
-    saveLinks(allLinks);
-
-    console.log('\n========================================');
-    console.log('  SUMMARY');
-    console.log('========================================');
-    console.log(`  Buttons found:  ${count}`);
-    console.log(`  New links:      ${newC}`);
-    console.log(`  Duplicates:     ${skipC}`);
-    console.log(`  Errors:         ${errC}`);
-    console.log(`  Total saved:    ${allLinks.length}`);
-    console.log(`  Output file:    ${OUTPUT_FILE}`);
-    console.log('========================================\n');
-  } catch (err) {
-    console.error('[FATAL]', err.message);
-    process.exit(1);
-  } finally {
-    if (context) await context.close();
-    if (browser) await browser.close();
   }
+
+  try {
+    await page.waitForSelector('.artdeco-card, [data-test-id="main-feed_activity_card"], .saved-posts-card', { timeout: 15000 });
+  } catch (e) { console.log('[WARN] No post containers found.'); }
+
+  await scrollToLoadAllPosts(page, 50);
+
+  const buttons = page.locator('button[aria-label*="Click to take more actions on"]');
+  const count = await buttons.count();
+  console.log(`\n[INFO] Found ${count} overflow button(s).`);
+
+  const allLinks = [...existingLinks];
+  let newC = 0, skipC = 0, errC = 0;
+
+  for (let i = 0; i < count; i++) {
+    const btn = buttons.nth(i);
+    try {
+      await btn.scrollIntoViewIfNeeded({ timeout: 5000 });
+      await page.waitForTimeout(500);
+      await btn.click({ timeout: 5000 });
+      await page.waitForTimeout(1500);
+      const link = await extractPostLinkFromDropdown(page);
+      if (link) {
+        const norm = link.startsWith('http') ? link : `https://www.linkedin.com${link}`;
+        if (!existingSet.has(norm)) {
+          allLinks.push(norm); existingSet.add(norm); newC++;
+          console.log(`  [${i + 1}/${count}] ?? ${norm}`);
+        } else {
+          skipC++; console.log(`  [${i + 1}/${count}] (duplicate) ${norm}`);
+        }
+      } else {
+        errC++; console.log(`  [${i + 1}/${count}] ?? No link found`);
+      }
+      await page.keyboard.press('Escape');
+      await page.waitForTimeout(500);
+    } catch (err) {
+      errC++; console.log(`  [${i + 1}/${count}] ?? ${err.message}`);
+      try { await page.keyboard.press('Escape'); } catch (e) { /* ignore */ }
+    }
+  }
+
+  saveLinks(allLinks);
+
+  console.log('\n========================================');
+  console.log('  SUMMARY');
+  console.log('========================================');
+  console.log(`  Buttons found:  ${count}`);
+  console.log(`  New links:      ${newC}`);
+  console.log(`  Duplicates:     ${skipC}`);
+  console.log(`  Errors:         ${errC}`);
+  console.log(`  Total saved:    ${allLinks.length}`);
+  console.log(`  Output file:    ${OUTPUT_FILE}`);
+  console.log('========================================\n');
+
+  await browser.close();
 }
 
 main().catch((err) => { console.error('[FATAL]', err); process.exit(1); });
