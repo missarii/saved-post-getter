@@ -1,2 +1,2 @@
-sudo kill -9 $(sudo lsof -t -i:3000)
+lsof -ti:3000 | xargs -r kill -9 2>/dev/null || true
 npm start
